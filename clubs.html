@@ -1,7 +1,86 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clubs</title><script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="css/style.css"></head><body class="bg-gradient-to-r from-green-200 via-blue-200 to-purple-200 min-h-screen font-sans p-6">
-<h1 class="text-4xl font-bold mb-6">Premier League Clubs</h1>
-<div id="clubs-container"></div>
-<script src="js/main.js"></script></body></html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premier League Clubs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    font-family: sans-serif;
+    background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+  }
+  .glass {
+    background: rgba(255,255,255,0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .glass:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+  .squad-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body class="min-h-screen p-6">
+<h1 class="text-4xl font-bold mb-6 text-center text-gray-800 drop-shadow-lg">Premier League Clubs</h1>
+<div id="clubs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+<script>
+const apiKey = 'f55a1d7187ef4c618812f3e2cf7c4a46';
+
+async function fetchJSON(url) {
+  try {
+    const res = await fetch(url, { headers: { 'X-Auth-Token': apiKey } });
+    return await res.json();
+  } catch (e) {
+    console.error('API error', e);
+    return null;
+  }
+}
+
+async function displayClubs() {
+  const container = document.getElementById('clubs-container');
+  if (!container) return;
+
+  // Fetch all Premier League teams
+  const data = await fetchJSON('https://api.football-data.org/v4/competitions/PL/teams');
+  if (!data || !data.teams) return;
+
+  // Fetch detailed info for all teams in parallel
+  const teamsDetails = await Promise.all(
+    data.teams.map(team => fetchJSON(`https://api.football-data.org/v4/teams/${team.id}`))
+  );
+
+  teamsDetails.forEach(team => {
+    const div = document.createElement('div');
+    div.className = 'glass p-4 shadow-lg';
+
+    // Create squad list
+    const squadHTML = team.squad?.length
+      ? team.squad.map(p => `<li>${p.name} - ${p.position || 'N/A'}</li>`).join('')
+      : '<li>No squad data available</li>';
+
+    div.innerHTML = `
+      <h2 class="text-xl font-bold mb-2">${team.name}</h2>
+      <p><strong>Manager:</strong> ${team.coach?.name || 'N/A'}</p>
+      <p><strong>Stadium:</strong> ${team.venue || 'N/A'}</p>
+      <p><strong>Founded:</strong> ${team.founded || 'N/A'}</p>
+      <h3 class="font-semibold mt-2">Squad:</h3>
+      <ul class="text-sm list-disc list-inside squad-list">${squadHTML}</ul>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', displayClubs);
+</script>
+</body>
+</html>
