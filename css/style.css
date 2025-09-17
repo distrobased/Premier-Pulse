@@ -1,0 +1,6 @@
+body { font-family: sans-serif; }
+.glass { background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); border-radius: 1rem; padding: 1rem; box-shadow: 0 4px 30px rgba(0,0,0,0.1); }
+.table-glow { border-collapse: collapse; width: 100%; }
+.table-glow th, .table-glow td { border: 1px solid rgba(255,255,255,0.4); padding: 8px; text-align: center; }
+.table-glow th { background: rgba(173,216,230,0.4); color: #000; }
+.table-glow tr:hover { background: rgba(144,238,144,0.3); }
